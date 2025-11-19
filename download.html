@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> GM tools </title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Scribd PDF Downloader</h1>
+            <p>Baixe documentos do Scribd em formato PDF</p>
+        </div>
+
+        <div class="content">
+            <div class="instructions">
+                <h3>📋 Formato Correto da URL</h3>
+                <p><strong>Importante:</strong> A URL deve incluir o título do documento no final.</p>
+                
+                <div class="url-format">
+                    <strong>Formato correto:</strong>
+                    <div class="example">https://www.scribd.com/doc/ID/TITULO-DOCUMENTO</div>
+                </div>
+
+                <ol>
+                    <li>ex:<strong>ID do documento:</strong> <code>36341</code> (número após /doc/ ou document)</li>
+                    <li><strong>Título do documento:</strong> <code>TITULO-Do-Documento</code> (texto após o ID)</li>
+                    <li><strong>URL completa:</strong> Deve conter ambos: ID e Título</li>
+                </ol>
+
+
+                <p><strong>✅ URL correta:</strong> <code>https://www.scribd.com/doc/ID/TITULO-DOCUMENTO</code></p>
+            </div>
+
+            <div class="url-input-section">
+                <input type="url" class="url-input" id="scribdUrl" 
+                       placeholder="url (ex: https://www.scribd.com/doc/ID/TITULO-DOCUMENTO)">
+            </div>
+
+            <button class="download-btn" onclick="downloadContentAsPDF()">
+                <svg class="btn-icon" viewBox="0 0 24 24">
+                    <path d="M20 2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8.5 7.5c0 .83-.67 1.5-1.5 1.5H9v2H7.5V7H10c.83 0 1.5.67 1.5 1.5v1zm5 2c0 .83-.67 1.5-1.5 1.5h-2.5V7H15c.83 0 1.5.67 1.5 1.5v3zm4-3H19v1h1.5V11H19v2h-1.5V7h3v1.5zM9 9.5h1v-1H9v1zM4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm10 5.5h1v-3h-1v3z"/>
+                </svg>
+                Download PDF
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <span>Preparando download...</span>
+            </div>
+
+            <div class="status" id="status"></div>
+        </div>
+
+        <div class="footer">
+            <p>Todos direitos reservados® Gr & matrix</p>
+        </div>
+    </div>
+
+    <script>
+        // Armazenar URL original
+        function saveOriginalUrl() {
+            const urlInput = document.getElementById('scribdUrl');
+            const url = urlInput.value.trim();
+            
+            if (url && (url.includes("scribd.com/document") || url.includes("scribd.com/doc") || url.includes("scribd.com/presentation"))) {
+                // Verificar se a URL tem o formato correto com título
+                const regex = /https?:\/\/(?:.*\.)?scribd\.com\/([^/]+)\/(\d+)\/([^/?#]+)/;
+                const match = url.match(regex);
+                
+                if (match && match[3]) {
+                    localStorage.setItem('originalUrl', url);
+                    return url;
+                } else {
+                    showStatus('❌ URL incompleta. Certifique-se de incluir o título do documento no final da URL.', 'error');
+                    return null;
+                }
+            } else if (url) {
+                showStatus('❌ Por favor, insira uma URL válida do Scribd', 'error');
+                return null;
+            } else {
+                showStatus('❌ Por favor, insira uma URL do Scribd', 'error');
+                return null;
+            }
+        }
+
+        // Download como PDF
+        function downloadContentAsPDF() {
+            const url = saveOriginalUrl();
+            if (!url) return;
+
+            showLoading(true);
+
+            const regex = /https?:\/\/(?:.*\.)?scribd\.com\/([^/]+)\/(\d+)\/([^/?#]+)/;
+            const match = url.match(regex);
+
+            if (match) {
+                const [_, type, id, title] = match;
+                const newUrl = `https://scribd.vdownloaders.com/${type}/${id}/${title}`;
+                
+                setTimeout(() => {
+                    // Abrir em nova aba
+                    window.open(newUrl, '_blank');
+                    showLoading(false);
+                    showStatus('✅ Download iniciado! Verifique sua nova aba ou pasta de downloads.', 'success');
+                }, 1000);
+            } else {
+                showLoading(false);
+                showStatus('❌ Formato de URL inválido. Use o formato: https://www.scribd.com/doc/ID/TITULO-DOCUMENTO', 'error');
+            }
+        }
+
+        // Funções auxiliares de UI
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.style.display = show ? 'flex' : 'none';
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 6000);
+        }
+
+        // Preencher automaticamente se houver URL no localStorage
+       // window.addEventListener('DOMContentLoaded', () => {
+         //   const savedUrl = localStorage.getItem('originalUrl');
+       //     /if (savedUrl) {
+              //  document.getElementById('scribdUrl').value = savedUrl;
+        //    }
+     //   });
+
+        // Permitir Enter no input
+        document.getElementById('scribdUrl').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                downloadContentAsPDF();
+            }
+        });
+    </script>
+</body>
+</html>
